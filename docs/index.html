@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radar de Insiders</title>
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+<header>
+  <div class="marca">
+    <span class="logo">◉</span>
+    <div>
+      <h1>Radar de Insiders</h1>
+      <p class="sub">Insiders · Congreso · Retail · Cortos — datos públicos de EE. UU.</p>
+    </div>
+  </div>
+  <div id="estado" class="estado"></div>
+</header>
+<div id="demo" class="demo" hidden>Estás viendo <b>datos de ejemplo</b> inventados. Ejecuta la acción "Actualizar datos" en GitHub para cargar los datos reales.</div>
+
+<nav id="tabs">
+  <button data-tab="resumen" class="activo">Resumen</button>
+  <button data-tab="insiders">Insiders</button>
+  <button data-tab="congreso">Congreso</button>
+  <button data-tab="retail">Retail (Reddit)</button>
+  <button data-tab="cortos">Ventas en corto</button>
+  <button data-tab="buscar">Buscar ticker</button>
+</nav>
+
+<main>
+  <section id="resumen" class="tab activo">
+    <div id="kpis" class="kpis"></div>
+    <div class="dos">
+      <div class="panel"><h2>Señales cruzadas</h2><p class="ayuda">Acciones donde coinciden al menos dos señales: compras de insiders (30 días), compras de congresistas (90 días) o interés retail en aumento.</p><div id="cruce"></div></div>
+      <div class="panel"><h2>Compras agrupadas</h2><p class="ayuda">Dos o más insiders distintos comprando la misma acción en los últimos 30 días.</p><div id="cluster"></div></div>
+    </div>
+    <div class="panel"><h2>Mayores compras de insiders (30 días)</h2><div id="topcompras"></div></div>
+  </section>
+
+  <section id="insiders" class="tab">
+    <div class="filtros">
+      <div class="seg" id="ins-tipo"><button data-v="P" class="activo">Compras</button><button data-v="S">Ventas</button></div>
+      <input id="ins-tk" placeholder="Ticker o empresa">
+      <select id="ins-dias"><option value="7">7 días</option><option value="30" selected>30 días</option><option value="90">90 días</option><option value="9999">Todo</option></select>
+      <select id="ins-min"><option value="0">Cualquier monto</option><option value="100000" selected>≥ $100 mil</option><option value="1000000">≥ $1 millón</option><option value="10000000">≥ $10 millones</option></select>
+      <select id="ins-cargo"><option value="">Todos los cargos</option><option value="ceo|chief executive|president">CEO / Presidente</option><option value="cfo|chief financial">CFO</option><option value="director">Director</option><option value="10%">Dueño 10%</option></select>
+      <label class="chk"><input type="checkbox" id="ins-plan"> Excluir planes 10b5-1</label>
+    </div>
+    <div id="ins-tabla"></div>
+  </section>
+
+  <section id="congreso" class="tab">
+    <div class="filtros">
+      <input id="con-tk" placeholder="Ticker o congresista">
+      <select id="con-cam"><option value="">Ambas cámaras</option><option>Cámara</option><option>Senado</option></select>
+      <select id="con-tipo"><option value="">Compras y ventas</option><option value="Compra">Compras</option><option value="Venta">Ventas</option></select>
+      <select id="con-par"><option value="">Todos los partidos</option><option value="D">Demócrata</option><option value="R">Republicano</option></select>
+      <select id="con-dias"><option value="30">30 días</option><option value="90" selected>90 días</option><option value="9999">Todo</option></select>
+    </div>
+    <p class="ayuda">Los congresistas tienen hasta 45 días para reportar, y los montos se informan en rangos. "Retraso" son los días entre la operación y el reporte.</p>
+    <div id="con-tabla"></div>
+  </section>
+
+  <section id="retail" class="tab">
+    <div class="filtros"><input id="ret-tk" placeholder="Ticker o nombre"><label class="chk"><input type="checkbox" id="ret-sub"> Solo con menciones en aumento</label></div>
+    <p class="ayuda">Menciones en Reddit (r/wallstreetbets, r/stocks y otros) durante las últimas 24 horas. Es un indicador aproximado del interés de inversionistas minoristas, no de sus compras reales.</p>
+    <div id="ret-tabla"></div>
+  </section>
+
+  <section id="cortos" class="tab">
+    <div class="filtros"><input id="cor-tk" placeholder="Ticker"><select id="cor-vol"><option value="200000">Volumen ≥ 200 mil</option><option value="1000000" selected>Volumen ≥ 1 millón</option><option value="10000000">Volumen ≥ 10 millones</option></select></div>
+    <p class="ayuda">Porcentaje del volumen reportado a FINRA (fuera de bolsa) que fue venta en corto. Mide actividad del día, no posiciones cortas abiertas. Un valor alto y creciente sugiere presión vendedora.</p>
+    <div id="cor-tabla"></div>
+  </section>
+
+  <section id="buscar" class="tab">
+    <div class="filtros"><input id="bus-tk" placeholder="Escribe un ticker, ej. NVDA" class="grande"></div>
+    <div id="bus-res"></div>
+  </section>
+</main>
+
+<footer>
+  Fuentes: <a href="https://www.sec.gov/edgar" target="_blank" rel="noopener">SEC EDGAR</a> (Form 4) ·
+  <a href="https://disclosures-clerk.house.gov/FinancialDisclosure" target="_blank" rel="noopener">House Clerk</a> ·
+  Datos del Senado: <a href="https://www.bargo.ai/free-apis/congress" target="_blank" rel="noopener">Bargo Congress Trades API</a> ·
+  <a href="https://apewisdom.io" target="_blank" rel="noopener">ApeWisdom</a> ·
+  <a href="https://www.finra.org/finra-data/browse-catalog/short-sale-volume-data" target="_blank" rel="noopener">FINRA</a> (uso no comercial).
+  <br>Información pública con fines informativos. No es asesoría de inversión.
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
