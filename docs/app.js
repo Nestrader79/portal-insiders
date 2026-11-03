@@ -60,7 +60,8 @@ async function iniciar() {
     cargar("rtat.json", {}),
   ]);
   D.rtat = rt.filas || []; D.rtatUlt = rt.ultimo || "";
-  D.compras = c.filas || []; D.ventas = v.filas || []; D.congreso = con.filas || []; D.retail = ret.filas || [];
+  D.comprasTodas = c.filas || []; D.ventasTodas = v.filas || [];
+  D.compras = D.comprasTodas.filter((f) => !f.dudoso); D.ventas = D.ventasTodas.filter((f) => !f.dudoso); D.congreso = con.filas || []; D.retail = ret.filas || [];
   D.retailHist = rh || {}; D.cortos = cor.datos ? cor : { fechas: [], datos: {} }; D.estado = est || {};
   pintarEstado(); resumen(); insiders(); congreso(); retail(); cortos();
   const m = location.hash.match(/t=([A-Z0-9.\-]+)/i); if (m) irTicker(m[1]);
@@ -153,7 +154,7 @@ function colsInsiders() {
     { k: "cargo", t: "Cargo", corta: 1 },
     { k: "acc", t: "Acciones", n: 1, f: (f) => num(f.acc) },
     { k: "pre", t: "Precio", n: 1, f: (f) => (f.pre ? "$" + f.pre.toFixed(2) : "—") },
-    { k: "val", t: "Valor", n: 1, f: (f) => `<span class="${f.cod === "P" ? "compra" : "venta"}">${dinero(f.val)}</span>` },
+    { k: "val", t: "Valor", n: 1, s: (f) => (f.dudoso ? -1 : f.val), f: (f) => (f.dudoso ? `<span class="chip m" title="Precio o monto con probable error de digitación en el reporte original. No se suma en los totales.">⚠ revisar</span> <s>${dinero(f.val)}</s>` : `<span class="${f.cod === "P" ? "compra" : "venta"}">${dinero(f.val)}</span>`) },
     { k: "dt", t: "Δ tenencia", n: 1, s: deltaTenencia, f: (f) => pct(deltaTenencia(f), 0) },
     { k: "url", t: "", f: (f) => `<a href="${esc(f.url)}" target="_blank" rel="noopener">SEC ↗</a>` },
   ];
@@ -165,7 +166,7 @@ function insiders() {
     const q = $("#ins-tk").value.trim().toLowerCase(), lim = hace(+$("#ins-dias").value), min = +$("#ins-min").value;
     const cargo = $("#ins-cargo").value, sinPlan = $("#ins-plan").checked;
     const re = cargo ? new RegExp(cargo, "i") : null;
-    const fs = (tipo === "P" ? D.compras : D.ventas).filter((f) => f.fr >= lim && f.val >= min && (!q || f.tk.toLowerCase().startsWith(q) || (f.emp || "").toLowerCase().includes(q) || (f.ins || "").toLowerCase().includes(q)) && (!re || re.test(f.cargo || "")) && (!sinPlan || !f.plan));
+    const fs = (tipo === "P" ? D.comprasTodas : D.ventasTodas).filter((f) => f.fr >= lim && f.val >= min && (!q || f.tk.toLowerCase().startsWith(q) || (f.emp || "").toLowerCase().includes(q) || (f.ins || "").toLowerCase().includes(q)) && (!re || re.test(f.cargo || "")) && (!sinPlan || !f.plan));
     tabla("#ins-tabla", colsInsiders(), fs, { orden: "fr", reset, vacio: tipo === "P" ? "Sin compras con estos filtros." : "Sin ventas con estos filtros." });
   };
   $("#ins-tipo").querySelectorAll("button").forEach((b) => b.onclick = () => { $("#ins-tipo .activo").classList.remove("activo"); b.classList.add("activo"); tipo = b.dataset.v; pintar(true); });
