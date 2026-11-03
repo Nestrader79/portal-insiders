@@ -6,9 +6,8 @@ on:
       dias:
         description: "Días hacia atrás a revisar en la SEC (usa 7 la primera vez)"
         default: "3"
-  # Para que se actualice solo (lunes a viernes, 7:00 a.m. Bogotá), quita los # de las 2 líneas siguientes:
-  # schedule:
-  #   - cron: "0 12 * * 1-5"
+  schedule:
+    - cron: "0 12 * * 1-5"
 
 permissions:
   contents: write
