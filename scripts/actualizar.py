@@ -10,11 +10,13 @@ import congreso
 import cortos
 import insiders
 import retail
+import rtat
 
 FUENTES = {
     "insiders": insiders.ejecutar,
     "congreso": congreso.ejecutar,
     "retail": retail.ejecutar,
+    "rtat": rtat.ejecutar,
     "cortos": cortos.ejecutar,
 }
 

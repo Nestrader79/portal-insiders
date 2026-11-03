@@ -1,5 +1,5 @@
 "use strict";
-const D = { compras: [], ventas: [], congreso: [], retail: [], retailHist: {}, cortos: { fechas: [], datos: {} }, estado: {} };
+const D = { rtat: [], rtatUlt: "", compras: [], ventas: [], congreso: [], retail: [], retailHist: {}, cortos: { fechas: [], datos: {} }, estado: {} };
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -54,10 +54,12 @@ async function cargar(nombre, def) {
   try { const r = await fetch("data/" + nombre + "?v=" + Date.now()); if (!r.ok) return def; return await r.json(); } catch { return def; }
 }
 async function iniciar() {
-  const [c, v, con, ret, rh, cor, est] = await Promise.all([
+  const [c, v, con, ret, rh, cor, est, rt] = await Promise.all([
     cargar("insiders_compras.json", {}), cargar("insiders_ventas.json", {}), cargar("congreso.json", {}),
     cargar("retail.json", {}), cargar("retail_hist.json", {}), cargar("cortos.json", {}), cargar("estado.json", {}),
+    cargar("rtat.json", {}),
   ]);
+  D.rtat = rt.filas || []; D.rtatUlt = rt.ultimo || "";
   D.compras = c.filas || []; D.ventas = v.filas || []; D.congreso = con.filas || []; D.retail = ret.filas || [];
   D.retailHist = rh || {}; D.cortos = cor.datos ? cor : { fechas: [], datos: {} }; D.estado = est || {};
   pintarEstado(); resumen(); insiders(); congreso(); retail(); cortos();
@@ -66,7 +68,7 @@ async function iniciar() {
 
 function pintarEstado() {
   const f = D.estado.fuentes || {};
-  const nombres = { insiders: "Insiders", congreso: "Congreso", retail: "Retail", cortos: "Cortos" };
+  const nombres = { insiders: "Insiders", congreso: "Congreso", rtat: "Retail Nasdaq", retail: "Reddit", cortos: "Cortos" };
   $("#estado").innerHTML = Object.entries(nombres).map(([k, n]) => {
     const x = f[k]; if (!x) return `<span>${n}: <b>sin datos</b></span>`;
     return `<span class="${x.ok ? "" : "err"}" title="${esc(x.error || x.msg || "")}">${n}: <b>${x.ok ? sinceDias(x.fecha) : "error"}</b></span>`;
@@ -95,6 +97,7 @@ function senales() {
   for (const f of D.compras) if (f.fr >= l30 && f.tk) { const x = get(f.tk); x.insVal += f.val; x.insN++; x.emp = x.emp || f.emp; }
   for (const f of D.congreso) if (f.fr >= l90 && f.tk && f.tipo === "Compra") get(f.tk).conN++;
   for (const r of D.retail) if (r.tk && (r.cambio ?? 0) > 0 && r.rank <= 150) { const x = get(r.tk); x.ret = r; x.emp = x.emp || r.nom; }
+  for (const r of rtatUltimo()) if (r.sen != null && r.sen > 0) { const x = get(r.tk); x.nas = r; if (!x.ret) x.ret = { rank: "N", men: 0, cambio: null, nas: true }; }
   const out = [];
   for (const x of Object.values(s)) {
     const n = (x.insN > 0) + (x.conN > 0) + (x.ret != null);
@@ -110,22 +113,22 @@ function resumen() {
   const c7 = D.compras.filter((f) => f.fr >= l7), v7 = D.ventas.filter((f) => f.fr >= l7);
   const sum = (a) => a.reduce((s, f) => s + (f.val || 0), 0);
   const con30 = D.congreso.filter((f) => f.fr >= l30 && f.tk);
-  const top = D.retail[0];
+  const top = rtatUltimo()[0] || D.retail[0];
   const ratio = sum(v7) ? sum(c7) / sum(v7) : null;
   $("#kpis").innerHTML = [
     ["Compras de insiders · 7 días", dinero(sum(c7)), `${c7.length} reportes`, "compra"],
     ["Ventas de insiders · 7 días", dinero(sum(v7)), `${v7.length} reportes`, "venta"],
     ["Ratio compra/venta (valor)", ratio == null ? "—" : ratio.toFixed(3), "valor comprado ÷ valor vendido, 7 días", ""],
     ["Operaciones del Congreso · 30 días", num(con30.length), `${con30.filter((f) => f.tipo === "Compra").length} compras`, ""],
-    ["Más mencionada en Reddit", top ? top.tk : "—", top ? `${num(top.men)} menciones 24 h` : "", ""],
+    [top && top.act != null ? "Más operada por minoristas" : "Más mencionada en Reddit", top ? top.tk : "—", top ? (top.act != null ? `${pct(top.act)} del dinero retail · ${fecha(D.rtatUlt)}` : `${num(top.men)} menciones 24 h`) : "", ""],
   ].map(([t, v, d, c]) => `<div class="kpi"><div class="t">${t}</div><div class="v ${c}">${v}</div><div class="d">${d}</div></div>`).join("");
 
   tabla("#cruce", [
     { k: "tk", t: "Ticker", f: (x) => tk(x.tk) },
     { k: "n", t: "Señales", n: 1, f: (x) => (x.insN ? `<span class="chip v">Insiders</span>` : "") + (x.conN ? `<span class="chip a">Congreso</span>` : "") + (x.ret ? `<span class="chip m">Retail</span>` : "") },
-    { k: "insVal", t: "Compras insiders", n: 1, f: (x) => (x.insVal ? dinero(x.insVal) : "—") },
-    { k: "conN", t: "Compras Congreso", n: 1, f: (x) => x.conN || "—" },
-    { k: "ret", t: "Reddit", n: 1, s: (x) => x.ret?.men, f: (x) => (x.ret ? `#${x.ret.rank} · +${x.ret.cambio}%` : "—") },
+    { k: "insVal", t: "Insiders $", n: 1, f: (x) => (x.insVal ? dinero(x.insVal) : "—") },
+    { k: "conN", t: "Congreso", n: 1, f: (x) => x.conN || "—" },
+    { k: "ret", t: "Retail", n: 1, s: (x) => (x.nas ? 1e9 : 0) + (x.ret?.men || 0), f: (x) => [x.nas ? `<span title="Sentimiento Nasdaq">N +${x.nas.sen}</span>` : "", x.ret && !x.ret.nas ? `<span title="Ranking Reddit">R #${x.ret.rank}</span>` : ""].filter(Boolean).join(" · ") || "—" },
     { k: "corto", t: "% corto", n: 1, f: (x) => pct(x.corto, 0) },
   ], senales(), { orden: "n", lim: 25, cuenta: false, vacio: "Ninguna acción con dos o más señales por ahora." });
 
@@ -194,7 +197,25 @@ function congreso() {
   pintar();
 }
 
+function rtatUltimo() { return D.rtat.filter((r) => r.f === D.rtatUlt).sort((a, b) => b.act - a.act); }
+function rtatSerie(t) { const d = [...new Set(D.rtat.map((r) => r.f))].sort().slice(-30); const m = {}; D.rtat.forEach((r) => { if (r.tk === t) m[r.f] = r.sen; }); return d.map((f) => m[f] ?? null); }
+function rtat() {
+  const l30 = hace(30), dias = {};
+  D.rtat.forEach((r) => { if (r.f >= l30) dias[r.tk] = (dias[r.tk] || 0) + 1; });
+  tabla("#rtat-tabla", [
+    { k: "pos", t: "#", n: 1 },
+    { k: "tk", t: "Ticker", f: (r) => tk(r.tk) },
+    { k: "act", t: "Actividad", n: 1, f: (r) => pct(r.act, 2) },
+    { k: "sen", t: "Sentimiento (10 días)", n: 1, f: (r) => (r.sen == null ? "—" : `<span class="${r.sen > 0 ? "compra" : r.sen < 0 ? "venta" : ""}">${r.sen > 0 ? "+" : ""}${r.sen} ${r.sen > 0 ? "comprando" : r.sen < 0 ? "vendiendo" : ""}</span>`) },
+    { k: "d30", t: "Días en el top 10 (30 d)", n: 1 },
+    { k: "s", t: "Sentimiento 30 d", f: (r) => spark(rtatSerie(r.tk)) },
+  ], rtatUltimo().map((r, i) => ({ ...r, pos: i + 1, d30: dias[r.tk] || 1 })), { orden: "pos", asc: true, cuenta: false,
+    vacio: "Sin datos de Nasdaq todavía. Revisa que el secreto NASDAQ_API_KEY esté creado y ejecuta la actualización." });
+  if (D.rtatUlt) $("#rtat-tabla").insertAdjacentHTML("afterbegin", `<div class="cuenta">Día de mercado: ${fecha(D.rtatUlt)}</div>`);
+}
+
 function retail() {
+  rtat();
   const l30 = hace(30), compraIns = new Set(D.compras.filter((f) => f.fr >= l30).map((f) => f.tk));
   const pintar = (reset) => {
     const q = $("#ret-tk").value.trim().toLowerCase(), sube = $("#ret-sub").checked;
@@ -257,6 +278,7 @@ function buscar(t) {
     <div class="kpi"><div class="t">Ventas de insiders</div><div class="v venta">${dinero(sum(v))}</div><div class="d">${v.length} reportes (últimos 60 días)</div></div>
     <div class="kpi"><div class="t">Congreso</div><div class="v">${con.length}</div><div class="d">${con.filter((f) => f.tipo === "Compra").length} compras · ${con.filter((f) => f.tipo?.startsWith("Venta")).length} ventas</div></div>
     <div class="kpi"><div class="t">Reddit</div><div class="v">${r ? "#" + r.rank : "—"}</div><div class="d">${r ? num(r.men) + " menciones 24 h " + spark((D.retailHist[t] || []).map((x) => x[1])) : "fuera del top"}</div></div>
+    <div class="kpi"><div class="t">Minoristas (Nasdaq)</div><div class="v">${(() => { const x = D.rtat.filter((q) => q.tk === t); return x.length ? (x[0].sen > 0 ? '<span class="compra">+' : '<span class="venta">') + x[0].sen + "</span>" : "—"; })()}</div><div class="d">${(() => { const x = D.rtat.filter((q) => q.tk === t); return x.length ? `sentimiento al ${fecha(x[0].f)} · ${x.length} días en el top 10` : "no ha estado en el top 10"; })()}</div></div>
     <div class="kpi"><div class="t">% en corto (FINRA)</div><div class="v">${s ? pct(s[s.length - 1]?.[0]) : "—"}</div><div class="d">${s ? spark(s.map((x) => (x ? x[0] : null))) : "sin datos"}</div></div>
   </div>
   <div class="panel"><h2>Insiders</h2><div id="bus-ins"></div></div>

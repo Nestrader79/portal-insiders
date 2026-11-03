@@ -23,7 +23,7 @@
   <button data-tab="resumen" class="activo">Resumen</button>
   <button data-tab="insiders">Insiders</button>
   <button data-tab="congreso">Congreso</button>
-  <button data-tab="retail">Retail (Reddit)</button>
+  <button data-tab="retail">Retail</button>
   <button data-tab="cortos">Ventas en corto</button>
   <button data-tab="buscar">Buscar ticker</button>
 </nav>
@@ -63,6 +63,13 @@
   </section>
 
   <section id="retail" class="tab">
+    <div class="panel">
+      <h2>Compras y ventas reales de minoristas · Nasdaq</h2>
+      <p class="ayuda">Las 10 acciones más operadas por inversionistas minoristas el último día disponible (versión gratuita del Retail Trading Activity Tracker de Nasdaq). <b>Actividad</b>: % de todo el dinero que movieron los minoristas ese día. <b>Sentimiento</b>: positivo = compraron más de lo que vendieron en los últimos 10 días; negativo = vendieron más.</p>
+      <div id="rtat-tabla"></div>
+      <p class="ayuda" style="margin-top:10px">Complemento manual: Fidelity publica el número de órdenes de compra y venta de sus clientes (sección <i>Orders by Fidelity Customers</i> en su centro de investigación de acciones). <a href="https://www.fidelity.com/" target="_blank" rel="noopener">Abrir Fidelity ↗</a></p>
+    </div>
+    <h2 style="font-size:15px;margin:18px 0 4px">Menciones en Reddit</h2>
     <div class="filtros"><input id="ret-tk" placeholder="Ticker o nombre"><label class="chk"><input type="checkbox" id="ret-sub"> Solo con menciones en aumento</label></div>
     <p class="ayuda">Menciones en Reddit (r/wallstreetbets, r/stocks y otros) durante las últimas 24 horas. Es un indicador aproximado del interés de inversionistas minoristas, no de sus compras reales.</p>
     <div id="ret-tabla"></div>
@@ -84,7 +91,7 @@
   Fuentes: <a href="https://www.sec.gov/edgar" target="_blank" rel="noopener">SEC EDGAR</a> (Form 4) ·
   <a href="https://disclosures-clerk.house.gov/FinancialDisclosure" target="_blank" rel="noopener">House Clerk</a> ·
   Datos del Senado: <a href="https://www.bargo.ai/free-apis/congress" target="_blank" rel="noopener">Bargo Congress Trades API</a> ·
-  <a href="https://apewisdom.io" target="_blank" rel="noopener">ApeWisdom</a> ·
+  <a href="https://data.nasdaq.com/databases/RTAT" target="_blank" rel="noopener">Nasdaq RTAT</a> · <a href="https://apewisdom.io" target="_blank" rel="noopener">ApeWisdom</a> ·
   <a href="https://www.finra.org/finra-data/browse-catalog/short-sale-volume-data" target="_blank" rel="noopener">FINRA</a> (uso no comercial).
   <br>Información pública con fines informativos. No es asesoría de inversión.
 </footer>
