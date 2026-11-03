@@ -182,13 +182,35 @@ def ejecutar(dias=3):
             return tk in validos
         return bool(re.fullmatch(r"[A-Z]{1,5}(\.[A-Z])?", tk)) and tk not in ("NONE", "NA", "N/A")
 
+    def dudoso(f):
+        """Valores que casi seguro son errores de digitación en el Form 4."""
+        acc, pre, val = f.get("acc") or 0, f.get("pre") or 0, f.get("val") or 0
+        if val >= 1e9:  # más de mil millones en una sola operación de mercado
+            return True
+        if pre >= 500 and acc >= 1000:
+            for k in (100, 1000, 10000):  # precio = acciones / 100, 1000…
+                if abs(acc / k - pre) <= max(0.02 * pre, 0.01):
+                    return True
+        return False
+
     def recortar(filas, dias_ret):
         lim = (hoy - timedelta(days=dias_ret)).isoformat()
         unicos = {}
         for f in filas:
             if f.get("fr", "") >= lim and cotiza(f.get("tk")):
                 unicos[(f["id"], f["cod"])] = f
-        return sorted(unicos.values(), key=lambda f: (f["fr"], f["val"]), reverse=True)
+        # misma operación reportada por varias entidades relacionadas (fondos, fideicomisos): se cuenta una vez
+        juntas = {}
+        for f in sorted(unicos.values(), key=lambda f: f["fr"]):
+            f["dudoso"] = dudoso(f)
+            k = (f["tk"], f["cod"], f["ft"], f["acc"], round(f["pre"], 2))
+            if k in juntas and f["acc"] > 0:
+                g = juntas[k]
+                if f["ins"] and f["ins"] not in g["ins"]:
+                    g["ins"] = f"{g['ins']} / {f['ins']}"
+                continue
+            juntas[k] = f
+        return sorted(juntas.values(), key=lambda f: (f["fr"], f["val"]), reverse=True)
 
     compras = recortar(compras, RETENCION_COMPRAS)
     ventas = recortar(ventas, RETENCION_VENTAS)
