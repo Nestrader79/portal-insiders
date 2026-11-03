@@ -40,6 +40,7 @@ jobs:
         env:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
           BARGO_API_KEY: ${{ secrets.BARGO_API_KEY }}
+          NASDAQ_API_KEY: ${{ secrets.NASDAQ_API_KEY }}
         run: python scripts/actualizar.py --dias "${{ github.event.inputs.dias || '3' }}"
 
       - name: Guardar datos en el repositorio
