@@ -167,11 +167,26 @@ def ejecutar(dias=3):
             else:
                 ventas.append(f); nuevos_v += 1
 
+    # solo acciones que cotizan en bolsa: se descartan fondos/REIT no listados (ticker "NONE", "N/A", vacío…)
+    validos = set()
+    try:
+        r = cli.get("https://www.sec.gov/files/company_tickers.json")
+        validos = {v["ticker"].upper().replace("-", ".") for v in r.json().values()}
+        log(f"  {len(validos)} tickers listados en la SEC")
+    except Exception as e:
+        log(f"  (no se pudo cargar la lista de tickers: {e})")
+
+    def cotiza(tk):
+        tk = (tk or "").upper().replace("-", ".")
+        if validos:
+            return tk in validos
+        return bool(re.fullmatch(r"[A-Z]{1,5}(\.[A-Z])?", tk)) and tk not in ("NONE", "NA", "N/A")
+
     def recortar(filas, dias_ret):
         lim = (hoy - timedelta(days=dias_ret)).isoformat()
         unicos = {}
         for f in filas:
-            if f.get("fr", "") >= lim:
+            if f.get("fr", "") >= lim and cotiza(f.get("tk")):
                 unicos[(f["id"], f["cod"])] = f
         return sorted(unicos.values(), key=lambda f: (f["fr"], f["val"]), reverse=True)
 
