@@ -284,14 +284,29 @@ def precios_nasdaq(cli_web):
 
 
 def bono_10y(cli_web):
+    """Rendimiento del bono del Tesoro a 10 años: Tesoro de EE. UU. y, si falla, FRED."""
+    año = date.today().year
+    for y in (año, año - 1):
+        try:
+            url = ("https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/"
+                   f"{y}/all?type=daily_treasury_yield_curve&field_tdr_date_value={y}&page&_format=csv")
+            r = cli_web.get(url, reintentos=1, timeout=30)
+            filas = list(csv.DictReader(io.StringIO(r.text)))
+            if filas and filas[0].get("10 Yr"):
+                f = filas[0]  # la primera fila es la más reciente
+                m, d, yy = f["Date"].split("/")
+                return float(f["10 Yr"]) / 100, f"{yy}-{m}-{d}"
+        except Exception as e:
+            log(f"  (Tesoro no disponible: {e})")
     try:
-        r = cli_web.get(FRED_10Y)
+        r = cli_web.get(FRED_10Y, reintentos=1, timeout=20)
         filas = [l.split(",") for l in r.text.strip().splitlines()[1:]]
         filas = [f for f in filas if len(f) == 2 and f[1] not in (".", "")]
         return float(filas[-1][1]) / 100, filas[-1][0]
     except Exception as e:
-        log(f"  (no se pudo leer el bono a 10 años: {e})")
-        return None, None
+        log(f"  (FRED no disponible: {e})")
+    previo = leer("empresas.json", {}) or {}
+    return previo.get("bono10"), previo.get("bono10_fecha")  # se conserva el último valor conocido
 
 
 def ejecutar(dias=3):
