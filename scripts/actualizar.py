@@ -8,6 +8,7 @@ from comun import ahora_iso, guardar, leer, log
 
 import congreso
 import cortos
+import fundamentales
 import insiders
 import retail
 import rtat
@@ -18,6 +19,7 @@ FUENTES = {
     "retail": retail.ejecutar,
     "rtat": rtat.ejecutar,
     "cortos": cortos.ejecutar,
+    "fundamentales": fundamentales.ejecutar,  # al final: usa los tickers del radar
 }
 
 

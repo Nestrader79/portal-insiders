@@ -6,6 +6,9 @@ Portal gratuito con datos públicos de EE. UU.:
 - **Congreso**: operaciones de congresistas (Cámara: fuente oficial; Senado: API gratuita de Bargo).
 - **Retail**: acciones más mencionadas en Reddit (ApeWisdom).
 - **Ventas en corto**: volumen diario en corto de FINRA.
+- **Analizar empresa**: qué negocio es (ventas, márgenes, ROIC, deuda, dilución, 10 años de historia) y qué futuro exige su precio (DCF inverso, escenario propio, valor intrínseco, retorno esperado frente al bono a 10 años y notas de analistas).
+- **Comparar**: hasta 5 empresas lado a lado con las mismas métricas.
+  Cubre el S&P 500 y las acciones del radar. Estados financieros: SEC XBRL; precios: Nasdaq; bono: FRED.
 
 Se actualiza cuando presionas un botón en GitHub y se publica gratis en GitHub Pages.
 

@@ -26,6 +26,8 @@
   <button data-tab="retail">Retail</button>
   <button data-tab="cortos">Ventas en corto</button>
   <button data-tab="buscar">Buscar ticker</button>
+  <button data-tab="analizar">Analizar empresa</button>
+  <button data-tab="comparar">Comparar</button>
 </nav>
 
 <main>
@@ -81,6 +83,17 @@
     <div id="cor-tabla"></div>
   </section>
 
+  <section id="analizar" class="tab">
+    <div class="filtros"><input id="ana-tk" list="lista-empresas" placeholder="Escribe un ticker, ej. UBER" class="grande" autocomplete="off"><span class="ayuda">S&amp;P 500 y todas las acciones del radar</span></div>
+    <datalist id="lista-empresas"></datalist>
+    <div id="ana-res"><div class="vacio">Escribe un ticker para ver qué negocio es, qué futuro exige su precio y cómo se compara.</div></div>
+  </section>
+
+  <section id="comparar" class="tab">
+    <div class="filtros"><input id="cmp-tk" list="lista-empresas" placeholder="Agregar ticker" autocomplete="off"><button id="cmp-add" class="mas" style="margin:0">Agregar</button><span id="cmp-chips"></span></div>
+    <div id="cmp-tabla"></div>
+  </section>
+
   <section id="buscar" class="tab">
     <div class="filtros"><input id="bus-tk" placeholder="Escribe un ticker, ej. NVDA" class="grande"></div>
     <div id="bus-res"></div>
@@ -91,10 +104,11 @@
   Fuentes: <a href="https://www.sec.gov/edgar" target="_blank" rel="noopener">SEC EDGAR</a> (Form 4) ·
   <a href="https://disclosures-clerk.house.gov/FinancialDisclosure" target="_blank" rel="noopener">House Clerk</a> ·
   Datos del Senado: <a href="https://www.bargo.ai/free-apis/congress" target="_blank" rel="noopener">Bargo Congress Trades API</a> ·
-  <a href="https://data.nasdaq.com/databases/RTAT" target="_blank" rel="noopener">Nasdaq RTAT</a> · <a href="https://apewisdom.io" target="_blank" rel="noopener">ApeWisdom</a> ·
+  Estados financieros: <a href="https://www.sec.gov/edgar/sec-api-documentation" target="_blank" rel="noopener">SEC XBRL</a> · Precios: Nasdaq · Bono: <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank" rel="noopener">FRED</a> · <a href="https://data.nasdaq.com/databases/RTAT" target="_blank" rel="noopener">Nasdaq RTAT</a> · <a href="https://apewisdom.io" target="_blank" rel="noopener">ApeWisdom</a> ·
   <a href="https://www.finra.org/finra-data/browse-catalog/short-sale-volume-data" target="_blank" rel="noopener">FINRA</a> (uso no comercial).
   <br>Información pública con fines informativos. No es asesoría de inversión.
 </footer>
 <script src="app.js"></script>
+<script src="analizar.js"></script>
 </body>
 </html>

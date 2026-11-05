@@ -69,7 +69,7 @@ async function iniciar() {
 
 function pintarEstado() {
   const f = D.estado.fuentes || {};
-  const nombres = { insiders: "Insiders", congreso: "Congreso", rtat: "Retail Nasdaq", retail: "Reddit", cortos: "Cortos" };
+  const nombres = { insiders: "Insiders", congreso: "Congreso", rtat: "Retail Nasdaq", retail: "Reddit", cortos: "Cortos", fundamentales: "Empresas" };
   $("#estado").innerHTML = Object.entries(nombres).map(([k, n]) => {
     const x = f[k]; if (!x) return `<span>${n}: <b>sin datos</b></span>`;
     return `<span class="${x.ok ? "" : "err"}" title="${esc(x.error || x.msg || "")}">${n}: <b>${x.ok ? sinceDias(x.fecha) : "error"}</b></span>`;
@@ -282,6 +282,7 @@ function buscar(t) {
     <div class="kpi"><div class="t">Minoristas (Nasdaq)</div><div class="v">${(() => { const x = D.rtat.filter((q) => q.tk === t); return x.length ? (x[0].sen > 0 ? '<span class="compra">+' : '<span class="venta">') + x[0].sen + "</span>" : "—"; })()}</div><div class="d">${(() => { const x = D.rtat.filter((q) => q.tk === t); return x.length ? `sentimiento al ${fecha(x[0].f)} · ${x.length} días en el top 10` : "no ha estado en el top 10"; })()}</div></div>
     <div class="kpi"><div class="t">% en corto (FINRA)</div><div class="v">${s ? pct(s[s.length - 1]?.[0]) : "—"}</div><div class="d">${s ? spark(s.map((x) => (x ? x[0] : null))) : "sin datos"}</div></div>
   </div>
+  <div class="filtros"><button class="mas" style="margin:0" onclick="analizar('${esc(t)}')">Analizar ${esc(t)}: negocio y valoración →</button></div>
   <div class="panel"><h2>Insiders</h2><div id="bus-ins"></div></div>
   <div class="panel"><h2>Congreso</h2><div id="bus-con"></div></div>`;
   tabla("#bus-ins", colsInsiders(), c.concat(v), { orden: "fr", cuenta: false, vacio: "Sin operaciones de insiders registradas." });
